@@ -26,9 +26,11 @@ public class Graph extends JPanel{
             d1List.add((float)0);
             d2List.add((float)0);
         }
+        toggleD1 = true;
+        toggleD2 = true;
         maxPoints = l;
         timeScale = w/l;
-        yScale = 20;
+        yScale = 1;
     }
     
     void addPoint(float d1, float d2){
@@ -39,12 +41,11 @@ public class Graph extends JPanel{
         }
         d1List.add(d1);
         d2List.add(d2);
+//        System.out.println("NEW POINTS: " + d1 + " " + d2);
     }
     
     public void setTimeScale(float ts){
-        timeScale = ts;
-
-//        maxPoints = (int) (this.getWidth()/ts);
+//        timeScale = ts;
     }
     public float getTimeScale(){
         return timeScale;
@@ -56,15 +57,24 @@ public class Graph extends JPanel{
         return yScale;
     }
     public void setNumPoints(int p){
-        if (p > maxPoints){
-            for (int i = maxPoints; i < p; i++){
-                d1List.add(0, (float)0);
-                d2List.add(0, (float)0);
-            }
-        }
+//        if (p > maxPoints){
+//            for (int i = maxPoints; i < p; i++){
+//                d1List.add(0, (float)0);
+//                d2List.add(0, (float)0);
+//            }
+//        }
+        d1List.clear();
+        d2List.clear();
+        for (int i = 0; i < p; i++){
+          d1List.add((float)0);
+          d2List.add((float)0);
+      }
         maxPoints = p;
 
-//        timeScale = this.getWidth()/p;
+        timeScale = (float)this.getWidth()/(float)p;
+        
+        
+        System.out.println("y - " + yScale + ", t - " + timeScale + ", maxPoints - " + maxPoints);
     }
     public int getNumPoints(){
         return maxPoints;
@@ -91,13 +101,18 @@ public class Graph extends JPanel{
         g2.setStroke(new BasicStroke(2));
         g2.drawRect(0, 0, this.getWidth(), this.getHeight());
         for(int i = 0; i < maxPoints-1; i++){
-            g2.setColor(c1);
-            g2.drawLine((int)(i*timeScale), (int)(((-d1List.get(i)*yScale)+offsetV)), 
-                        (int)(i*timeScale), (int)(((-d1List.get(i+1)*yScale)+offsetV)));
-            g2.setColor(c2);
-            g2.drawLine((int)(i*timeScale), (int)(((-d2List.get(i)*yScale)+offsetV)), 
-                        (int)(i*timeScale), (int)(((-d2List.get(i+1)*yScale)+offsetV)));
-            
+            if (toggleD1){
+//                System.out.println("PAINING D1");
+                g2.setColor(c1);
+                g2.drawLine((int)(i*timeScale), (int)(((-d1List.get(i)*yScale)+offsetV)), 
+                            (int)(i*timeScale), (int)(((-d1List.get(i+1)*yScale)+offsetV)));
+            }
+            if (toggleD2){
+//                System.out.println("PAINING D2");
+                g2.setColor(c2);
+                g2.drawLine((int)(i*timeScale), (int)(((-d2List.get(i)*yScale)+offsetV)), 
+                            (int)(i*timeScale), (int)(((-d2List.get(i+1)*yScale)+offsetV)));
+            }
             
         }
         

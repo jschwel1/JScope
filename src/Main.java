@@ -9,7 +9,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JToggleButton;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.fazecast.jSerialComm.SerialPort;
 
@@ -20,6 +23,7 @@ public class Main implements ActionListener{
     JSlider nSlide;
 
     JButton toggleD1, toggleD2;
+    JToggleButton pause;
     public static void main(String[] args) {
         Main m = new Main();
         m.go();
@@ -48,22 +52,87 @@ public class Main implements ActionListener{
         controls.add(vSlide);
         controls.add(nSlide);
         
-        vSlide.setMaximum(50);
+        vSlide.setMaximum(15);
         vSlide.setMinimum(1);
         vSlide.setValue((int)gr.getYScale());
-        vSlide.setMajorTickSpacing(5);
+        vSlide.setMajorTickSpacing(10);
+        vSlide.setPaintTicks(true);
+        vSlide.setPaintLabels(true);
+        vSlide.addChangeListener(new ChangeListener(){
+
+            public void stateChanged(ChangeEvent e) {
+                gr.setYScale((float)vSlide.getValue());
+                System.out.println("Veritcal change");
+            }
+            
+        });
+
         hSlide.setMaximum(20);
         hSlide.setMinimum(1);
         hSlide.setValue((int)gr.getTimeScale());
-        hSlide.setMajorTickSpacing(5);
-        nSlide.setMaximum(1000);
+        hSlide.setMajorTickSpacing(10);
+        hSlide.setPaintTicks(true);
+        hSlide.setPaintLabels(true);
+        hSlide.addChangeListener(new ChangeListener(){
+
+            public void stateChanged(ChangeEvent e) {
+                gr.setTimeScale((float)hSlide.getValue());
+                System.out.println("time change");
+            }
+            
+        });
+        
+        nSlide.setMaximum(2000);
         nSlide.setMinimum(10);
         nSlide.setValue((int)gr.getNumPoints());
-        nSlide.setMajorTickSpacing(50);
+        nSlide.setMajorTickSpacing(500);
+        nSlide.setPaintTicks(true);
+        nSlide.setPaintLabels(true);
+        nSlide.addChangeListener(new ChangeListener(){
+
+            public void stateChanged(ChangeEvent e) {
+                gr.setNumPoints(nSlide.getValue());
+                System.out.println("n change");
+            }
+            
+        });
         
         
+        toggleD1 = new JButton("D1 (ON)");
+        toggleD1.addActionListener(new ActionListener(){
+
+            public void actionPerformed(ActionEvent e) {
+                boolean set = gr.toggleD1();
+                toggleD1.setText("D1 " + (set?"(ON)":"(OFF)"));
+            }
+            
+        });
         
+       
+        toggleD2 = new JButton("D2 (ON)");
+        toggleD2.addActionListener(new ActionListener(){
+
+            public void actionPerformed(ActionEvent e) {
+                boolean set = gr.toggleD2();
+                toggleD2.setText("D2 " + (set?"(ON)":"(OFF)"));
+            }
+            
+        });      
         
+        pause = new JToggleButton("Pause");
+        pause.addActionListener(new ActionListener(){
+             public void actionPerformed(ActionEvent e){
+                 if (pause.isSelected()){
+                     clock.stop();
+                 }
+                 else{
+                     clock.start();
+                 }
+             }
+        });
+        controls.add(toggleD1);
+        controls.add(toggleD2);
+        controls.add(pause);
         frame.setVisible(true);
         frame.setSize(new Dimension(1000, 500));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -87,30 +156,29 @@ public class Main implements ActionListener{
         System.out.println("Successfully opened port!");
         
         p.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
-        p.setBaudRate(9600);
+        p.setBaudRate(128000);
         Scanner data = new Scanner(p.getInputStream());
 
         i = 0;
-        
-        
-
         int d1, d2;
+        String delim = ",";
         while(true){
             i = 0;
-            while(!data.hasNextLine()) {System.out.println("Waiting...");}
+            while(!data.hasNextLine()){}
             try{
                 String str = data.nextLine();
-                d1 = Integer.parseInt(str.substring(0, str.indexOf(" ")));
+                int delimIdx = str.indexOf(delim);
+                d1 = Integer.parseInt(str.substring(0, delimIdx++));
 
-                d2 = Integer.parseInt(str.substring(str.indexOf(" ")+1));
-                System.out.println(str + "-> " + str.substring(0, str.indexOf(" ")) + " / " + 
-                                   str.substring(str.indexOf(" ")) + " -> (" + d1 + ", " + d2 + ")");
+                d2 = Integer.parseInt(str.substring(delimIdx));
+//                System.out.println(str + "-> " + /*str.substring(0, str.indexOf(delim)) + " / " + 
+//                                   str.substring(str.indexOf(delim)+1) +*/ " -> (" + d1 + ", " + d2 + ")");
                 gr.addPoint((float)(d1*5.0/1023.0), (float)(d2*5.0/1023.0));  
                 
             } 
             catch(Exception e){
                 System.err.println("Something went wrong...");
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
         
@@ -121,9 +189,6 @@ public class Main implements ActionListener{
     
     public void actionPerformed(ActionEvent e) {
         gr.repaint();
-//        gr.setTimeScale(hSlide.getValue());
-        gr.setYScale(vSlide.getValue());
-        gr.setNumPoints(nSlide.getValue());
     }
 
 }
