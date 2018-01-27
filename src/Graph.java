@@ -12,6 +12,8 @@ public class Graph extends JPanel{
     int maxPoints;
     ArrayList<Float> d1List;
     ArrayList<Float> d2List;
+    ArrayList<Long> timeList;
+    long lastTime;
     float timeScale, yScale;
     
     final static Color c1 = new Color((float)0.0,(float)0.0,(float)0.0,(float)0.5);
@@ -31,6 +33,7 @@ public class Graph extends JPanel{
         maxPoints = l;
         timeScale = w/l;
         yScale = 1;
+        lastTime=System.currentTimeMillis();
     }
     
     void addPoint(float d1, float d2){
@@ -38,9 +41,14 @@ public class Graph extends JPanel{
         if (d1List.size() > maxPoints){
             d1List.remove(0);
             d2List.remove(0);
+            timeList.remove(0);
+            for(long t: timeList){
+               t = t-timeList.get(0); 
+            }
         }
         d1List.add(d1);
         d2List.add(d2);
+        timeList.add(System.currentTimeMillis());
 //        System.out.println("NEW POINTS: " + d1 + " " + d2);
     }
     

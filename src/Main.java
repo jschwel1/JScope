@@ -3,10 +3,12 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
@@ -62,6 +64,7 @@ public class Main implements ActionListener{
 
             public void stateChanged(ChangeEvent e) {
                 gr.setYScale((float)vSlide.getValue());
+                gr.repaint();
                 System.out.println("Veritcal change");
             }
             
@@ -77,6 +80,7 @@ public class Main implements ActionListener{
 
             public void stateChanged(ChangeEvent e) {
                 gr.setTimeScale((float)hSlide.getValue());
+                gr.repaint();
                 System.out.println("time change");
             }
             
@@ -92,6 +96,7 @@ public class Main implements ActionListener{
 
             public void stateChanged(ChangeEvent e) {
                 gr.setNumPoints(nSlide.getValue());
+                gr.repaint();
                 System.out.println("n change");
             }
             
@@ -103,6 +108,7 @@ public class Main implements ActionListener{
 
             public void actionPerformed(ActionEvent e) {
                 boolean set = gr.toggleD1();
+                gr.repaint();
                 toggleD1.setText("D1 " + (set?"(ON)":"(OFF)"));
             }
             
@@ -114,6 +120,7 @@ public class Main implements ActionListener{
 
             public void actionPerformed(ActionEvent e) {
                 boolean set = gr.toggleD2();
+                gr.repaint();
                 toggleD2.setText("D2 " + (set?"(ON)":"(OFF)"));
             }
             
@@ -138,16 +145,28 @@ public class Main implements ActionListener{
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         clock.start();
         
-        System.out.println("Getting ports...");
-        SerialPort ports[] = SerialPort.getCommPorts();
-        System.out.println("Select a port");
         int i = 0;
-        for (SerialPort p : ports){
-            System.out.println(i + ") " + p.getDescriptivePortName());
-        }
+        ArrayList<Object> options = new ArrayList<Object>();
+        SerialPort ports[];
+        do {
+            ports = SerialPort.getCommPorts();
+            
+            options.clear();
+            options.add("Refresh");
+            options.add("Exit");
+            for (SerialPort p : ports){
+                options.add(p.getDescriptivePortName());
+            }
+            
+            i = JOptionPane.showOptionDialog(frame, "Select a port", "Port", JOptionPane.PLAIN_MESSAGE, 
+              JOptionPane.QUESTION_MESSAGE, null, options.toArray(), options.toArray()[0]);
+            System.out.println("You selected option " + i);
+            if (i == 1) System.exit(0);
+        } while(i==0);
+//        Scanner s = new Scanner(System.in);
+//        SerialPort p = ports[s.nextInt()];
         
-        Scanner s = new Scanner(System.in);
-        SerialPort p = ports[s.nextInt()];
+        SerialPort p = ports[i-2];
         
         while (!p.openPort()){
             System.err.println("Unable to open port " + p.getSystemPortName() + " = " + p.getDescriptivePortName());
